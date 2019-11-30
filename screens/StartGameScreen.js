@@ -1,19 +1,90 @@
-import React from 'react';
-import { View, Text, StyleSheet, TextInput, Button } from 'react-native';
+import React, {useState} from 'react';
+import { View, Text, StyleSheet, Button, TouchableWithoutFeedback, Keyboard, Alert} from 'react-native';
+
+import Card from '../components/Card';
+import Colors from '../constants/colors';
+import Input from '../components/Input';
+import NumberContainer from '../components/NumberContainer';
 
 const StartGameScreen = props => {
+    const [enteredValue, setEnteredValue] = useState('');
+    const [confirmed, setConfirmed] = useState(false);
+    const [selectedNumber, setSelectedNumber] = useState('');
+
+    const numberInputHandler = inputText => {
+        setEnteredValue(inputText.replace(/[^0-9]/g, ''))
+    };
+
+    const resetInputHandler = () => {
+        console.log('Reset');
+        setEnteredValue('');
+        setConfirmed(false);
+    }
+
+    const confirmInputHandler = () => {
+        const chosenNumber = parseInt(enteredValue);
+        if(isNaN(chosenNumber) || chosenNumber <= 0 || chosenNumber > 99){
+            Alert.alert('Invalid Number', 'Number has to be between 1 and 99', [{text: 'OK', style:'destructive', onPress: resetInputHandler}])
+            return;
+        }
+        setConfirmed(true);
+        setSelectedNumber(chosenNumber);
+        setEnteredValue('');
+        console.log('confirmed');
+        Keyboard.dismiss();
+        
+    }
+
+    let confirmedOutput;
+
+    if(confirmed){
+        confirmedOutput = (
+        <Card style={styles.summaryContainer}>
+            <Text>You Selected</Text>
+            <NumberContainer>{selectedNumber}</NumberContainer>
+            <Button title="START GAME"/>
+        </Card>
+        );
+        
+    }
+
     return (
-        <View style={styles.screen}>
+        <TouchableWithoutFeedback 
+        onPress={() => {
+            Keyboard.dismiss();
+        }}>
+            <View style={styles.screen}>
             <Text style={styles.title}>Start a New Game!</Text>
-            <View style={styles.inputContainer}>
+            
+            <Card style={styles.inputContainer}>
                 <Text>Select a Number</Text>
-                <TextInput />
+                <Input 
+                    style={styles.input} 
+                    blurOnSubmit 
+                    autoCapitalize='none'
+                    autoCorrect={false} 
+                    keybordType='number-pad' 
+                    maxLength={2}
+                    onChangeText={numberInputHandler}
+                    value={enteredValue}
+                />
                 <View style={styles.buttonContainer}>
-                    <Button title="Reset" onPress={() => {}}/>
-                    <Button title="Confirm" onPress={() => {}}/>
+                    <View style={styles.button}>
+                        <Button title='Reset' 
+                        onPress={resetInputHandler} 
+                        color={Colors.accent}/>
+                    </View>
+                    <View style={styles.button}>
+                        <Button title='Confirm' 
+                        onPress={confirmInputHandler} 
+                        color={Colors.primary}/>
+                    </View>
                 </View>
-            </View>
+            </Card>
+            {confirmedOutput}
         </View>
+        </TouchableWithoutFeedback>
+        
     )
 };
 
@@ -32,21 +103,24 @@ const styles = StyleSheet.create({
         width: 300,
         maxWidth: '80%',
         alignItems: 'center', 
-        shadowColor: 'black',
-        shadowOffset: {widht: 0, height: 2},
-        shadowRadius: 6,
-        shadowOpacity: 0.26,
-        backgroundColor: 'white',
-        padding: 20,
-        borderRadius: 10,
-        elevation: 8,
-
+        
     },
     buttonContainer: {
         flexDirection: 'row',
         width: '100%',
         justifyContent: 'space-between',
         paddingHorizontal: 15,
+    },
+    button: {
+        width: 100
+    },
+    input: {
+        width: 200,
+        textAlign: 'center'
+    },
+    summaryContainer: {
+        marginTop: 20,
+        alignItems: 'center'
     }
 });
 
